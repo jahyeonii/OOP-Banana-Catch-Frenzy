@@ -73,6 +73,7 @@ public class GamePanel extends JPanel {
     BufferedImage bgCache;
     BufferedImage menuBgImage;
     BufferedImage playerSprite;
+    BufferedImage playBgImage;
  
     // 
     public GamePanel() {
@@ -91,6 +92,9 @@ public class GamePanel extends JPanel {
 
         menuBgImage = loadImage("menu_bg.png");
         playerSprite = loadImage("player.png");
+        playBgImage = loadImage("bananas.jpg");
+
+
         System.out.println("Player sprite loaded: " + (playerSprite != null));
         if (playerSprite != null) player.setSprite(playerSprite);
  
@@ -149,12 +153,12 @@ public class GamePanel extends JPanel {
  
         powerUps.update();
  
-        // Spawn fewer bananas, but make them speed up gently over time
-        double spawnRate = Math.max(0.003, 0.020 - difficulty * 0.003);
+        // Spawn bananas based on difficulty (higher difficulty = more bananas)
+        double spawnRate = 0.005 + difficulty * 0.005;
         if (Math.random() < spawnRate) {
             float bx = (float)(Math.random() * (W - 30));
             double timeBoost = Math.log1p(frameCount / 1200.0) * 0.5;
-            float spd = (float)(1.8 + difficulty * 0.6 + timeBoost + Math.random() * 0.7);
+            float spd = (float)(1.8 + difficulty * 0.8 + timeBoost + Math.random() * 0.7);
             bananas.add(new Banana(bx, spd));
         }
  
@@ -245,7 +249,7 @@ public class GamePanel extends JPanel {
  
     void startGame() {
         bananas.clear();
-        player.lives = 3; player.score = 0; player.x = 375;
+        player.lives = 5 - difficulty; player.score = 0; player.x = 375;
         powerUps.reset();
         frameCount = 0;
         state = State.PLAY;
@@ -677,10 +681,17 @@ public class GamePanel extends JPanel {
         g2.fillOval(leftAnchorX - 7, ropeTopY - 7, 14, 14);
         g2.fillOval(rightAnchorX - 7, ropeTopY - 7, 14, 14);
     }
- 
+    
     //  PLAY SCREEN
     void drawPlay(Graphics2D g2) {
-        drawJungleBg(g2);
+        if (playBgImage != null) {
+            Composite oldComposite = g2.getComposite();
+            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.7f)); // Semi-transparent background
+            g2.drawImage(playBgImage, 0, 0, W, H, null);
+            g2.setComposite(oldComposite);
+        } else {
+            drawJungleBg(g2);
+        }
         for (Banana b : bananas) b.draw(g2);
  
         // Shield bubble
